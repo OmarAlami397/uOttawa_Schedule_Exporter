@@ -1,1 +1,1 @@
-# uo_schedule_sync
+# uOttawa Schedule Exporter
