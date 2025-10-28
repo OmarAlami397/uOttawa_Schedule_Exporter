@@ -58,7 +58,7 @@ class Exam {
   processExams(exams) {
     for (const exam of exams) {
       exam.courseCode = exam.courseCode.split("\n")[0];
-      
+
     }
   }
 }
