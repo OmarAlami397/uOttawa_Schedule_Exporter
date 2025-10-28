@@ -1,6 +1,6 @@
 import { parseExamTable } from "./exam-handler.js";
 import { parseClassTable } from "./class-handler.js";
-import { getAuthToken } from "./google-auth.js";
+import { getAuthToken, getUserInfo, revokeAuthToken } from "./google-auth.js";
 
 function checkForSchedulePage() {
   const titleElement = document.getElementById(
@@ -9,7 +9,8 @@ function checkForSchedulePage() {
   if (titleElement) {
     const titleText = titleElement.innerText.trim();
 
-    return titleText === "My Class Schedule" || titleText === "My Exam Schedule"
+    return titleText === "My Class Schedule" ||
+      titleText === "My Exam Schedule"
       ? titleText
       : false;
   }
@@ -19,7 +20,9 @@ function checkForSchedulePage() {
 // Main script
 document.addEventListener("DOMContentLoaded", function () {
   const exportButton = document.getElementById("exportButton");
+  const signOutButton = document.getElementById("signOutButton");
   const statusMessage = document.getElementById("status");
+  const userInfo = document.getElementById("userInfo");
 
   chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
     const activeTab = tabs[0];
@@ -39,35 +42,40 @@ document.addEventListener("DOMContentLoaded", function () {
           if (pageType === "My Exam Schedule") {
             exportButton.disabled = false;
             statusMessage.textContent = "Ready to export exam schedule!";
+
             exportButton.addEventListener("click", async function () {
-              statusMessage.textContent = "Logging in to Google...";
-              exportButton.disabled = true;
-
               try {
-                // Get the auth token 
+                statusMessage.textContent = "Signing in...";
                 const token = await getAuthToken();
-                console.log("SUCCESS! Got auth token:", token);
-                statusMessage.textContent = "Login successful! Parsing...";
 
-                // If login is successful, THEN parse the table
+                statusMessage.textContent = "Getting user info...";
+                const user = await getUserInfo(token);
+                userInfo.textContent = `Signed in as: ${user.email}`;
+                userInfo.style.display = "block";
+
+                exportButton.style.display = "none";
+                signOutButton.style.display = "block";
+
+                statusMessage.textContent = "Parsing schedule...";
                 const exams = await parseExamTable();
                 console.log("Got exams in popup:", exams);
-                statusMessage.textContent = `Found ${exams.length} exams.`;
 
-                // Loop through exams and export to Google
-
+                statusMessage.textContent = `Exporting ${exams.length} exams...`;
+                // NEXT: Add Google Calendar creation logic here
+                //
+                statusMessage.textContent = "Export complete!";
+                
               } catch (error) {
                 console.error("Authentication failed:", error);
-                statusMessage.textContent = "Login failed. Please try again.";
+                statusMessage.textContent = "Sign-in failed. Please try again.";
               }
-
-              exportButton.disabled = false;
             });
           } else if (pageType === "My Class Schedule") {
             exportButton.disabled = false;
             statusMessage.textContent = "Ready to export class schedule!";
 
             exportButton.addEventListener("click", function () {
+              // Add auth flow here too
               console.log("Button clicked on the correct schedule page!");
               parseClassTable();
             });
@@ -81,4 +89,20 @@ document.addEventListener("DOMContentLoaded", function () {
       statusMessage.textContent = "Please open your uoZone schedule page.";
     }
   });
+
+  signOutButton.addEventListener("click", async function () {
+    try {
+      await revokeAuthToken();
+      statusMessage.textContent = "Signed out successfully.";
+      userInfo.style.display = "none";
+      userInfo.textContent = "";
+      signOutButton.style.display = "none";
+      exportButton.style.display = "block";
+      exportButton.disabled = false; // Or re-run the page check
+    } catch (error) {
+      console.error("Sign out failed:", error);
+      statusMessage.textContent = "Sign-out failed.";
+    }
+  });
 });
+

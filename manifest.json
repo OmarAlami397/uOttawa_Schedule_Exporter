@@ -23,7 +23,10 @@
     }
   ],
   "oauth2": {
-    "client_id": "33563386217-0864km5mmorqi1v2dg6kmr1cd2tm7juf.apps.googleusercontent.com",
-    "scopes": ["https://www.googleapis.com/auth/calendar.events"]
+    "client_id": "33563386217-po2n2p7mmifsk6i26r9dn0mvbvu8b6m8.apps.googleusercontent.com",
+    "scopes": ["https://www.googleapis.com/auth/calendar.events", "https://www.googleapis.com/auth/userinfo.email"]
+  },
+  "background": {
+    "service_worker": "background.js"
   }
 }

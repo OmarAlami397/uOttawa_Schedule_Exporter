@@ -1,0 +1,1 @@
+// Required for manifest v3 background service worker
