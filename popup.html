@@ -2,19 +2,45 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <title>Popup</title>
+    <title>uO Schedule Sync</title>
     <style>
       body {
-        width: 200px;
-        height: 100px;
-        margin: 0;
-        padding: 10px;
+        width: 250px;
         font-family: sans-serif;
+        text-align: center;
+        padding: 10px;
+      }
+      button {
+        background-color: #c00;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        font-size: 16px;
+        border-radius: 5px;
+        cursor: pointer;
+        width: 100%;
+      }
+      /* This new style will apply to our button
+       when it's disabled. */
+      button:disabled {
+        background-color: #999; /* Grey */
+        cursor: not-allowed;
       }
     </style>
   </head>
   <body>
-    <h3>Hello, World!</h3>
-    <p>My popup is working.</p>
+    <h3>uO Schedule Sync</h3>
+
+    <!-- 
+    It's disabled by default.
+  -->
+    <button id="exportButton" disabled>Start Export</button>
+
+    <!-- 
+    We'll use this to tell the user what's happening.
+  -->
+    <p id="status">Loading...</p>
+
+    <script src="popup.js"></script>
   </body>
 </html>
