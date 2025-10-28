@@ -2,9 +2,18 @@
   "manifest_version": 3,
   "name": "uO Schedule Sync",
   "version": "0.1",
-  "description": "My first extension!",
+  "description": "Sync your uOttawa schedule automatically.",
   "action": {
     "default_popup": "popup.html"
   },
-  "permissions": ["activeTab", "scripting"]
+  "permissions": ["activeTab", "scripting", "tabs", "webNavigation"],
+  "host_permissions": ["https://*.uottawa.ca/*"],
+  "content_scripts": [
+    {
+      "matches": ["https://*.uottawa.ca/*"],
+      "all_frames": true,
+      "js": ["objects/Exam.js"],
+      "run_at": "document_idle"
+    }
+  ]
 }

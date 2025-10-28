@@ -19,13 +19,23 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   function extractDataFromExamTable() {
-    const examTable = document.querySelector('table.PSLEVEL1GRID');
+    // Target the correct nested table (the one that actually holds data)
+    const table = document.querySelector('table.PSLEVEL1GRID');
+    if (!table) {
+      console.log("Wrong Frame");
+      return [];
+    }
 
-    const rows = examTable.querySelectorAll('tr');
+    const rows = table.querySelectorAll('tr[id^="trSS_EXAMSCH1_VW"]');
+    console.log("Found rows:", rows.length);
+
     const exams = [];
 
-    for (let i = 1; i < rows.length; i++) { // start at 1 to skip the header row
-      const cells = rows[i].querySelectorAll('td');
+    for (const row of rows) {
+      const cells = row.querySelectorAll('td');
+
+      // Defensive: make sure we have enough columns
+      if (cells.length < 6) continue;
 
       const courseCode = cells[0]?.innerText.trim() || '';
       const description = cells[1]?.innerText.trim() || '';
@@ -34,37 +44,45 @@ document.addEventListener('DOMContentLoaded', function() {
       const schedule = cells[4]?.innerText.trim() || '';
       const room = cells[5]?.innerText.trim() || '';
 
-      const exam = new Exam(courseCode, description, examType, examDate, schedule, room);
-      exams.push(exam);
-    }
-
-    console.log(exams);
-
-
+      exams.push(new Exam(course_code, description, exam_type, exam_date, schedule, room));
   }
 
-  function parseExamTable() {
-  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-    const activeTab = tabs[0];
-
-    chrome.scripting.executeScript(
-      {
-        target: { tabId: activeTab.id },
-        func: extractDataFromExamTable
-      },
-      (results) => {
-        const exams = results?.[0]?.result || [];
-        console.log('Extracted exams:', exams);
-      }
-    );
-  });
+  console.log("Extracted exams:", exams);
+  return exams;
 }
+
+
+ function parseExamTable() {
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      const activeTab = tabs[0];
+
+
+    chrome.scripting.executeScript({
+      target: { tabId: activeTab.id, allFrames: true },
+      files: ['exam.js']
+    }, () => {
+    chrome.scripting.executeScript(
+        {
+          target: { tabId: activeTab.id, allFrames: true },
+          func: extractDataFromExamTable
+        },
+        (results) => {
+          console.log("📄 Results from all frames:", results);
+
+          const frameResult = results.find(r => Array.isArray(r.result) && r.result.length > 0);
+          const exams = frameResult ? frameResult.result : [];
+
+          console.log("✅ Extracted exams:", exams);
+          return exams;
+        });
+      });
+    });
+  }
 
   function parseClassTable() {
     
   }
 
- 
 
   // main script
   chrome.tabs.query({ active: true, currentWindow: true }, function(tabs) {
@@ -90,7 +108,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             exportButton.addEventListener('click', function() {
               console.log("Button clicked on the correct schedule page!");
-              parseExamTable()
+              exams = parseExamTable()
 
 
             });
