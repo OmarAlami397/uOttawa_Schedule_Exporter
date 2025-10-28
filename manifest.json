@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "uO Schedule Sync",
+  "name": "uOttawa Schedule Exporter",
   "version": "0.1",
-  "description": "Sync your uOttawa schedule automatically.",
+  "description": "Export your uOttawa schedule automatically.",
   "action": {
     "default_popup": "popup.html"
   },
