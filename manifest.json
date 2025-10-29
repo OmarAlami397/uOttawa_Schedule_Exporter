@@ -27,7 +27,7 @@
     {
       "matches": ["https://*.uottawa.ca/*"],
       "all_frames": true,
-      "js": ["objects/Exam.js"],
+      "js": ["objects/Exam.js", "objects/Class.js"],
       "run_at": "document_idle"
     }
   ],
