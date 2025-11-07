@@ -1,4 +1,4 @@
-class Exam {
+export class Exam {
   constructor(course_code, description, exam_type, exam_date, schedule, room) {
     this._course_code = course_code; // String e.g., "CSI 2110-A00"
     this._description = description; // String

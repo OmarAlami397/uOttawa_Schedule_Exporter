@@ -1,4 +1,4 @@
-class ClassComponent {
+export class ClassComponent {
   constructor(
     courseCode,
     courseName,
@@ -6,6 +6,7 @@ class ClassComponent {
     componentDay,
     componentTime,
     room,
+    instructor,
     startDate,
     endDate
   ) {
@@ -15,6 +16,7 @@ class ClassComponent {
     this.componentDay = componentDay;
     this.componentTime = componentTime;
     this.room = room;
+    this.instructor = instructor;
     this.startDate = startDate;
     this.endDate = endDate;
   }
@@ -37,6 +39,9 @@ class ClassComponent {
   }
   getRoom() {
     return this.room;
+  }
+  getInstructor() {
+    return this.instructor;
   }
   getStartDate() {
     return this.startDate;
@@ -64,6 +69,9 @@ class ClassComponent {
   setRoom(room) {
     this.room = room;
   }
+  setInstructor(instructor) {
+    this.instructor = instructor;
+  }
   setStartDate(startDate) {
     this.startDate = startDate;
   }
@@ -76,7 +84,7 @@ class ClassComponent {
     return (
       `${this.courseCode} — ${this.courseName}\n` +
       `${this.component} on ${this.componentDay} (${this.componentTime}) at ${this.room}\n` +
-      `from ${this.startDate} to ${this.endDate}`
+      `from ${this.startDate} to ${this.endDate} with ${this.instructor}`
     );
   }
 }

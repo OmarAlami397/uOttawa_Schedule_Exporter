@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "uOttawa Schedule Exporter",
+  "name": "Schedule Exporter for uOttawa",
   "version": "0.1",
   "description": "Export your uOttawa schedule automatically.",
   "action": {
@@ -20,14 +20,15 @@
     "scripting",
     "tabs",
     "webNavigation",
-    "identity"
+    "identity",
+    "storage" 
   ],
   "host_permissions": ["https://*.uottawa.ca/*", "https://www.googleapis.com/"],
   "content_scripts": [
     {
       "matches": ["https://*.uottawa.ca/*"],
       "all_frames": true,
-      "js": ["objects/Exam.js", "objects/Class.js"],
+      "js": ["objects/Exam.js", "objects/ClassComponent.js"],
       "run_at": "document_idle"
     }
   ],
