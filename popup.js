@@ -8,7 +8,7 @@ import {
 
 function checkForSchedulePage() {
   const titleElement = document.getElementById(
-    "DERIVED_REGFRM1_SS_TRANSACT_TITLE"
+    "app_label"
   );
   if (titleElement) {
     const titleText = titleElement.innerText.trim();
