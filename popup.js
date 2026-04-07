@@ -5,6 +5,7 @@ import {
   getAuthTokenAndUserInfo,
   revokeAuthToken,
 } from "./google-auth.js";
+import { exportToIcs } from "./ics-handler.js";
 
 function checkForSchedulePage() {
   const titleElement = document.getElementById(
@@ -208,8 +209,21 @@ document.addEventListener("DOMContentLoaded", async () => {
     //  Decide which export to run
     if (currentExportType === "google") {
       console.log("TODO: Implement Google Export logic here");
+
+
+
+
+
+
+
     } else if (currentExportType === "ics") {
       console.log("TODO: Implement .ICS Export logic here");
+      exportToIcs(currentExportData, currentPageType);
+
+
+
+
+
     }
 
     // Show success and return to main view
