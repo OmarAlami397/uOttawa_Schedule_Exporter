@@ -8,7 +8,7 @@ export class ClassComponent {
     room,
     instructor,
     startDate,
-    endDate
+    endDate,
   ) {
     this.courseCode = courseCode;
     this.courseName = courseName;

@@ -1,4 +1,4 @@
-import { ClassComponent } from "/objects/ClassComponent.js";
+import { ClassComponent } from "../models/ClassComponent.js";
 
 function extractDataFromClassTable() {
   function dayFormatter(day) {
@@ -106,9 +106,7 @@ export async function parseClassTable() {
     func: extractDataFromClassTable,
   });
 
-  const frameResult = results.find(
-    (r) => Array.isArray(r.result) && r.result.length > 0
-  );
+  const frameResult = results.find((r) => Array.isArray(r.result) && r.result.length > 0);
 
   const plainClasses = frameResult ? frameResult.result : [];
 
@@ -123,8 +121,8 @@ export async function parseClassTable() {
         c.room,
         c.instructor,
         c.startDate,
-        c.endDate
-      )
+        c.endDate,
+      ),
   );
 
   console.log("✅ Extracted classes from content script:", classes);

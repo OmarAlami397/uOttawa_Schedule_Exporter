@@ -21,17 +21,9 @@
     "tabs",
     "webNavigation",
     "identity",
-    "storage" 
+    "storage"
   ],
   "host_permissions": ["https://*.uottawa.ca/*", "https://www.googleapis.com/"],
-  "content_scripts": [
-    {
-      "matches": ["https://*.uottawa.ca/*"],
-      "all_frames": true,
-      "js": ["objects/Exam.js", "objects/ClassComponent.js"],
-      "run_at": "document_idle"
-    }
-  ],
   "oauth2": {
     "client_id": "33563386217-po2n2p7mmifsk6i26r9dn0mvbvu8b6m8.apps.googleusercontent.com",
     "scopes": ["https://www.googleapis.com/auth/calendar.events", "https://www.googleapis.com/auth/userinfo.email"]

@@ -1,57 +1,15 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Schedule Exporter for uOttawa</title>
-    <link rel="stylesheet" type="text/css" href="style.css" />
   </head>
+
   <body>
-    <!-- View 1: Main View (Signed In / Signed Out) -->
-    <div id="main-view">
-      <h1>Schedule Exporter</h1>
+    <div id="root"></div>
 
-      <div class="button-container">
-        <!-- Signed-out state -->
-        <button id="signInButton" disabled>Sign In with Google</button>
-
-        <!-- Signed-in state -->
-        <button id="exportToGoogleButton" style="display: none">
-          Export to Google Calendar
-        </button>
-
-        <!-- Always visible, but enabled/disabled -->
-        <button id="exportAsICSButton" class="secondary" disabled>
-          Export as .ICS File
-        </button>
-
-        <!-- Signed-in state -->
-        <button id="signOutButton" class="secondary" style="display: none">
-          Sign Out
-        </button>
-      </div>
-
-      <p id="status">Loading...</p>
-      <p id="userInfo" style="display: none"></p>
-    </div>
-
-    <!-- View 2: Exporting View (Hidden by default) -->
-    <div id="exporting-view" style="display: none">
-      <h2 id="export-title">Review Export</h2>
-
-      <!-- This list will be filled with editable items -->
-      <div id="export-list"></div>
-
-      <div class="button-container export-controls">
-        <button id="exportConfirmButton" class="primary">Export</button>
-        <button id="exportCancelButton" class="secondary">Cancel</button>
-      </div>
-    </div>
-    
-    <!-- View 4: Toast Message (Hidden by default) -->
-    <div id="toast-message" class="toast" style="display: none;"></div>
-
-    <script type="module" src="popup.js"></script>
+    <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
 

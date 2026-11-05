@@ -17,41 +17,35 @@ export async function getAuthTokenAndUserInfo() {
     authUrl += `&scope=${encodeURIComponent(scopes)}`;
     authUrl += `&prompt=select_account`;
 
-    chrome.identity.launchWebAuthFlow(
-      { url: authUrl, interactive: true },
-      async (responseUrl) => {
-        if (chrome.runtime.lastError) {
-          return reject(new Error(chrome.runtime.lastError.message));
-        }
-
-        try {
-          const url = new URL(responseUrl);
-          const hash = new URLSearchParams(url.hash.substring(1));
-          const authToken = hash.get("access_token");
-
-          if (!authToken) {
-            return reject(new Error("Token not found in auth response."));
-          }
-
-          const userResponse = await fetch(
-            "https://www.googleapis.com/oauth2/v3/userinfo",
-            {
-              headers: { Authorization: `Bearer ${authToken}` },
-            }
-          );
-          if (!userResponse.ok) {
-            return reject(new Error("Failed to fetch user info."));
-          }
-          const user = await userResponse.json();
-
-          await chrome.storage.local.set({ authToken, userInfo: user });
-
-          resolve({ authToken, user });
-        } catch (error) {
-          reject(error);
-        }
+    chrome.identity.launchWebAuthFlow({ url: authUrl, interactive: true }, async (responseUrl) => {
+      if (chrome.runtime.lastError) {
+        return reject(new Error(chrome.runtime.lastError.message));
       }
-    );
+
+      try {
+        const url = new URL(responseUrl);
+        const hash = new URLSearchParams(url.hash.substring(1));
+        const authToken = hash.get("access_token");
+
+        if (!authToken) {
+          return reject(new Error("Token not found in auth response."));
+        }
+
+        const userResponse = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
+          headers: { Authorization: `Bearer ${authToken}` },
+        });
+        if (!userResponse.ok) {
+          return reject(new Error("Failed to fetch user info."));
+        }
+        const user = await userResponse.json();
+
+        await chrome.storage.local.set({ authToken, userInfo: user });
+
+        resolve({ authToken, user });
+      } catch (error) {
+        reject(error);
+      }
+    });
   });
 }
 

@@ -107,8 +107,7 @@ export function exportToIcs(data, type) {
   data.forEach((item) => {
     const uid = `uO-${Date.now()}-${Math.random().toString(36).slice(2)}@uottawa`;
 
-    const dtStamp =
-      new Date().toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
+    const dtStamp = new Date().toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
 
     const event = ["BEGIN:VEVENT", `UID:${uid}`, `DTSTAMP:${dtStamp}`];
 
@@ -118,6 +117,14 @@ export function exportToIcs(data, type) {
 
       const start = createSafeDate(item.startDate, times.start);
       const end = createSafeDate(item.startDate, times.end);
+      const byDay = DAY_MAP[item.componentDay];
+      if (!start || !end || !byDay) return;
+
+      // Start on the first scheduled weekday on or after the term start.
+      const weekday = ["SU", "MO", "TU", "WE", "TH", "FR", "SA"].indexOf(byDay);
+      const daysToAdd = (weekday - start.getDay() + 7) % 7;
+      start.setDate(start.getDate() + daysToAdd);
+      end.setDate(end.getDate() + daysToAdd);
 
       const dtStart = formatIcsDate(start);
       const dtEnd = formatIcsDate(end);
@@ -128,19 +135,15 @@ export function exportToIcs(data, type) {
         minutes: 59,
       });
       const until = formatIcsDate(untilDate);
-      if (!until) return;
-
-      const byDay = DAY_MAP[item.componentDay] ?? "MO";
+      if (!until || start > untilDate) return;
 
       event.push(
         `SUMMARY:${icsEscape(`${item.courseCode} (${item.component})`)}`,
-        `DESCRIPTION:${icsEscape(
-          `${item.courseName}\nInstructor: ${item.instructor}`
-        )}`,
+        `DESCRIPTION:${icsEscape(`${item.courseName}\nInstructor: ${item.instructor}`)}`,
         `LOCATION:${icsEscape(item.room)}`,
         `DTSTART:${dtStart}`,
         `DTEND:${dtEnd}`,
-        `RRULE:FREQ=WEEKLY;UNTIL=${until};BYDAY=${byDay}`
+        `RRULE:FREQ=WEEKLY;UNTIL=${until};BYDAY=${byDay}`,
       );
     } else {
       // Exams
@@ -156,12 +159,10 @@ export function exportToIcs(data, type) {
 
       event.push(
         `SUMMARY:${icsEscape(`Exam: ${item.courseCode}`)}`,
-        `DESCRIPTION:${icsEscape(
-          `${item.description}\nType: ${item.examType}`
-        )}`,
+        `DESCRIPTION:${icsEscape(`${item.description}\nType: ${item.examType}`)}`,
         `LOCATION:${icsEscape(item.room)}`,
         `DTSTART:${dtStart}`,
-        `DTEND:${dtEnd}`
+        `DTEND:${dtEnd}`,
       );
     }
 
@@ -171,7 +172,7 @@ export function exportToIcs(data, type) {
 
   if (!events.length) {
     console.error("No valid events to export");
-    return;
+    return 0;
   }
 
   const ics = [
@@ -193,4 +194,6 @@ export function exportToIcs(data, type) {
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  return events.length;
 }

@@ -1,4 +1,4 @@
-import { Exam } from "/objects/Exam.js";
+import { Exam } from "../models/Exam.js";
 
 function extractDataFromExamTable() {
   const table = document.querySelector("table.PSLEVEL1GRID");
@@ -7,7 +7,7 @@ function extractDataFromExamTable() {
     return [];
   }
 
-  const rows = table.querySelectorAll('tr');
+  const rows = table.querySelectorAll("tr");
   console.log("Found rows:", rows.length);
 
   const exams = [];
@@ -34,16 +34,13 @@ function extractDataFromExamTable() {
 export async function parseExamTable() {
   let [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
 
-
   const results = await chrome.scripting.executeScript({
     target: { tabId: tab.id, allFrames: true },
     func: extractDataFromExamTable,
   });
 
   console.log("📄 Results from all frames:", results);
-  const frameResult = results.find(
-    (r) => Array.isArray(r.result) && r.result.length > 0
-  );
+  const frameResult = results.find((r) => Array.isArray(r.result) && r.result.length > 0);
   const plainExams = frameResult ? frameResult.result : [];
 
   const exams = plainExams.map((examData) => {
@@ -53,7 +50,7 @@ export async function parseExamTable() {
       examData.examType,
       examData.examDate,
       examData.schedule,
-      examData.room
+      examData.room,
     );
   });
 
