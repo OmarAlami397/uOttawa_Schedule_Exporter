@@ -42,24 +42,25 @@ export default function MeetingCard({ meeting, isClass, errors, dispatch, onEdit
       <div id={contentId} className="card-content" hidden={!meeting.expanded}>
         {meeting.room && <p className="export-item-context">{meeting.room}</p>}
 
-        {field("courseCode", "Course Code")}
-        {isClass ? field("component", "Component") : field("description", "Description")}
-        {isClass && field("componentDay", "Day", "select")}
+        <div className="meeting-fields">
+          <div className={`meeting-details${isClass ? "" : " meeting-details-exam"}`}>
+            {field("courseCode", "Course Code")}
+            {isClass ? field("component", "Component") : field("description", "Description")}
+            {isClass && field("componentDay", "Day", "select")}
+          </div>
 
-        <div className="export-field-row">
-          {isClass ? (
-            <>
-              {field("startDate", "Start date", "date")}
-              {field("endDate", "End date", "date")}
-            </>
-          ) : (
-            field("examDate", "Exam date", "date")
-          )}
-        </div>
-
-        <div className="export-field-row">
-          {field("startTime", "Start time", "time")}
-          {field("endTime", "End time", "time")}
+          <div className={`meeting-schedule${isClass ? "" : " meeting-schedule-exam"}`}>
+            {isClass ? (
+              <>
+                {field("startDate", "Start date", "date")}
+                {field("endDate", "End date", "date")}
+              </>
+            ) : (
+              field("examDate", "Exam date", "date")
+            )}
+            {field("startTime", "Start time", "time")}
+            {field("endTime", "End time", "time")}
+          </div>
         </div>
       </div>
     </article>

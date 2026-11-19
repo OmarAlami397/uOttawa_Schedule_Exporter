@@ -1,22 +1,8 @@
+import { DAYS, isIsoDate, validateMeeting } from "../services/schedule-preview.js";
+
+export { DAYS };
 export const CLASS_PAGE = "My Class Schedule";
 export const EXAM_PAGE = "My Exam Schedule";
-export const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
-
-function isIsoDate(value) {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
-
-  const [year, month, day] = value.split("-").map(Number);
-  const date = new Date(0);
-  date.setFullYear(year, month - 1, day);
-  date.setHours(0, 0, 0, 0);
-
-  return (
-    year > 0 &&
-    date.getFullYear() === year &&
-    date.getMonth() === month - 1 &&
-    date.getDate() === day
-  );
-}
 
 export function dateToInput(value) {
   const match = String(value ?? "")
@@ -151,45 +137,8 @@ export function reviewReducer(state, action) {
 }
 
 export function validateReview(review, pageType) {
-  const errors = [];
-
-  for (const item of review.meetings) {
-    const add = (field, message) => errors.push({ id: item.id, field, message });
-
-    if (pageType === CLASS_PAGE && !DAYS.includes(item.componentDay))
-      add("componentDay", "Choose a day.");
-
-    const dates = pageType === CLASS_PAGE ? ["startDate", "endDate"] : ["examDate"];
-    for (const field of dates) {
-      if (!isIsoDate(item[field])) add(field, "Enter a valid date.");
-    }
-    if (
-      pageType === CLASS_PAGE &&
-      item.startDate &&
-      item.endDate &&
-      item.endDate < item.startDate
-    ) {
-      add("endDate", "End date must be on or after the start date.");
-    }
-
-    for (const field of ["startTime", "endTime"]) {
-      if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(item[field])) add(field, "Enter a valid time.");
-    }
-    if (item.startTime && item.endTime && item.endTime <= item.startTime) {
-      add("endTime", "End time must be after the start time.");
-    }
-
-    if (pageType === CLASS_PAGE && !errors.some((error) => error.id === item.id)) {
-      const first = new Date(`${item.startDate}T00:00:00`);
-      const dayOffset = (((DAYS.indexOf(item.componentDay) + 1) % 7) - first.getDay() + 7) % 7;
-      first.setDate(first.getDate() + dayOffset);
-      if (first > new Date(`${item.endDate}T00:00:00`)) {
-        add("endDate", "This date range does not include the selected weekday.");
-      }
-    }
-  }
-
-  return errors;
+  return review.meetings.flatMap((item) =>
+    validateMeeting(item, pageType === CLASS_PAGE ? "class" : "exam"));
 }
 
 export function toExportData(review, pageType) {

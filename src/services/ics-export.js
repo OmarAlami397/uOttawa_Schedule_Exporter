@@ -1,20 +1,14 @@
-/**
- * Format JS Date → ICS floating DATE-TIME (YYYYMMDDTHHMMSS)
- */
-function formatIcsDate(date) {
-  if (!date || isNaN(date.getTime())) return null;
+import { firstWeekdayOnOrAfter, isIsoDate } from "./schedule-preview.js";
+
+/** Format a calendar date and wall-clock time without DST normalization. */
+function formatIcsDate(date, time) {
+  if (!isIsoDate(date) || !time || !Number.isInteger(time.hours) ||
+      !Number.isInteger(time.minutes) || time.hours < 0 || time.hours > 23 ||
+      time.minutes < 0 || time.minutes > 59) return null;
 
   const pad = (n) => String(n).padStart(2, "0");
 
-  return (
-    date.getFullYear() +
-    pad(date.getMonth() + 1) +
-    pad(date.getDate()) +
-    "T" +
-    pad(date.getHours()) +
-    pad(date.getMinutes()) +
-    pad(date.getSeconds())
-  );
+  return `${date.replaceAll("-", "")}T${pad(time.hours)}${pad(time.minutes)}00`;
 }
 
 /**
@@ -52,25 +46,16 @@ function parseTimes(timeStr) {
 }
 
 /**
- * Create Date from MM/DD/YYYY + time (LOCAL time, no UTC shift)
+ * Convert the source MM/DD/YYYY value to a validated calendar date.
  */
-function createSafeDate(dateStr, time) {
+function sourceDate(dateStr) {
   if (!dateStr || dateStr === "N/A") return null;
 
   const parts = dateStr.split("/");
   if (parts.length !== 3) return null;
 
-  const month = parseInt(parts[0], 10) - 1;
-  const day = parseInt(parts[1], 10);
-  const year = parseInt(parts[2], 10);
-
-  if ([month, day, year].some(Number.isNaN)) return null;
-
-  const h = time?.hours ?? 0;
-  const m = time?.minutes ?? 0;
-
-  const date = new Date(year, month, day, h, m, 0);
-  return isNaN(date.getTime()) ? null : date;
+  const date = `${parts[2].padStart(4, "0")}-${parts[0].padStart(2, "0")}-${parts[1].padStart(2, "0")}`;
+  return isIsoDate(date) ? date : null;
 }
 
 /**
@@ -115,27 +100,23 @@ export function exportToIcs(data, type) {
       const times = parseTimes(item.componentTime);
       if (!times) return;
 
-      const start = createSafeDate(item.startDate, times.start);
-      const end = createSafeDate(item.startDate, times.end);
+      const rangeStart = sourceDate(item.startDate);
+      const rangeEnd = sourceDate(item.endDate);
       const byDay = DAY_MAP[item.componentDay];
-      if (!start || !end || !byDay) return;
+      if (!rangeStart || !rangeEnd || !byDay) return;
 
       // Start on the first scheduled weekday on or after the term start.
-      const weekday = ["SU", "MO", "TU", "WE", "TH", "FR", "SA"].indexOf(byDay);
-      const daysToAdd = (weekday - start.getDay() + 7) % 7;
-      start.setDate(start.getDate() + daysToAdd);
-      end.setDate(end.getDate() + daysToAdd);
+      const first = firstWeekdayOnOrAfter(rangeStart, item.componentDay);
 
-      const dtStart = formatIcsDate(start);
-      const dtEnd = formatIcsDate(end);
+      const dtStart = formatIcsDate(first, times.start);
+      const dtEnd = formatIcsDate(first, times.end);
       if (!dtStart || !dtEnd) return;
 
-      const untilDate = createSafeDate(item.endDate, {
+      const until = formatIcsDate(rangeEnd, {
         hours: 23,
         minutes: 59,
       });
-      const until = formatIcsDate(untilDate);
-      if (!until || start > untilDate) return;
+      if (!until || first > rangeEnd) return;
 
       event.push(
         `SUMMARY:${icsEscape(`${item.courseCode} (${item.component})`)}`,
@@ -150,11 +131,9 @@ export function exportToIcs(data, type) {
       const times = parseTimes(item.schedule);
       if (!times) return;
 
-      const start = createSafeDate(item.examDate, times.start);
-      const end = createSafeDate(item.examDate, times.end);
-
-      const dtStart = formatIcsDate(start);
-      const dtEnd = formatIcsDate(end);
+      const date = sourceDate(item.examDate);
+      const dtStart = formatIcsDate(date, times.start);
+      const dtEnd = formatIcsDate(date, times.end);
       if (!dtStart || !dtEnd) return;
 
       event.push(
