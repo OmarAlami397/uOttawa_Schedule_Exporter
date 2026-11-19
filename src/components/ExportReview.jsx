@@ -11,13 +11,13 @@ export default function ExportReview({ review, pageType, dispatch, onConfirm, on
   const [errors, setErrors] = useState([]);
   const [exportError, setExportError] = useState("");
   const [activeTab, setActiveTab] = useState("edit");
-  const prepared = useMemo(() => preparePreview(review.meetings, isClass ? "class" : "exam"), [review.meetings, isClass]);
+  const prepared = useMemo(() => preparePreview(review.events, isClass ? "class" : "exam"), [review.events, isClass]);
   const [selectedWeek, setSelectedWeek] = useState(() => initialPreviewWeek(prepared.bounds));
   const weekStart = clampPreviewWeek(selectedWeek, prepared.bounds);
   const preview = useMemo(() => buildWeekPreview(prepared, weekStart), [prepared, weekStart]);
-  const warnings = useMemo(() => review.meetings.map((meeting) => ({
-    meeting, issues: prepared.issues.filter((issue) => issue.id === meeting.id),
-  })).filter((warning) => warning.issues.length), [review.meetings, prepared]);
+  const warnings = useMemo(() => review.events.map((event) => ({
+    event, issues: prepared.issues.filter((issue) => issue.id === event.id),
+  })).filter((warning) => warning.issues.length), [review.events, prepared]);
 
   useEffect(() => {
     setSelectedWeek(weekStart);
@@ -38,9 +38,9 @@ export default function ExportReview({ review, pageType, dispatch, onConfirm, on
     if (!target) return;
 
     pendingFocus.current = null;
-    if (target.kind === "invalid" || target.kind === "meeting") {
+    if (target.kind === "invalid" || target.kind === "event") {
       const input = document.getElementById(`${target.id}-${target.field}`);
-      const scrollTarget = target.kind === "meeting" ? input?.closest(".export-item") : input;
+      const scrollTarget = target.kind === "event" ? input?.closest(".export-item") : input;
       scrollTarget?.scrollIntoView({ block: "nearest", inline: "nearest" });
       input?.focus({ preventScroll: true });
       if (target.kind === "invalid") input?.reportValidity();
@@ -53,8 +53,8 @@ export default function ExportReview({ review, pageType, dispatch, onConfirm, on
     }
   }, [review, errors, activeTab]);
 
-  function revealMeeting(id, field) {
-    pendingFocus.current = { kind: "meeting", id, field: field || "startTime" };
+  function revealEvent(id, field) {
+    pendingFocus.current = { kind: "event", id, field: field || "startTime" };
     setActiveTab("edit");
     if (field) setErrors(prepared.issues);
     dispatch({ type: "reveal", id });
@@ -91,7 +91,7 @@ export default function ExportReview({ review, pageType, dispatch, onConfirm, on
 
   function confirm(event) {
     event.preventDefault();
-    if (!review.meetings.length) return;
+    if (!review.events.length) return;
 
     const validation = validateReview(review, pageType);
     setErrors(validation);
@@ -115,7 +115,7 @@ export default function ExportReview({ review, pageType, dispatch, onConfirm, on
       <header className="review-heading">
         <h2 id="export-title">{isClass ? "Review Class Schedule" : "Review Exam Schedule"}</h2>
         <p id="export-count" role="status" aria-live="polite">
-          {review.meetings.length} {review.meetings.length === 1 ? "event" : "events"} to export
+          {review.events.length} {review.events.length === 1 ? "event" : "events"} to export
         </p>
       </header>
 
@@ -136,7 +136,7 @@ export default function ExportReview({ review, pageType, dispatch, onConfirm, on
             <CourseCard
               key={course.id}
               course={course}
-              meetings={review.meetings.filter((meeting) => meeting.courseId === course.id)}
+              events={review.events.filter((event) => event.courseId === course.id)}
               isClass={isClass}
               errors={errors}
               dispatch={dispatch}
@@ -145,7 +145,7 @@ export default function ExportReview({ review, pageType, dispatch, onConfirm, on
             />
           ))}
 
-          {!review.meetings.length && (
+          {!review.events.length && (
             <p className="export-empty">No events left to export. Cancel to start again.</p>
           )}
         </div>
@@ -155,10 +155,10 @@ export default function ExportReview({ review, pageType, dispatch, onConfirm, on
         aria-labelledby="review-tab-preview" hidden={activeTab !== "preview"}>
         <WeeklyPreview {...preview} weekStart={weekStart} bounds={prepared.bounds}
           startMinutes={prepared.startMinutes} endMinutes={prepared.endMinutes}
-          warnings={warnings} hasMeetings={review.meetings.length > 0}
+          warnings={warnings} hasEvents={review.events.length > 0}
           isActive={activeTab === "preview"}
           onNavigate={(offset) => setSelectedWeek(addDays(weekStart, offset))}
-          onSelectMeeting={revealMeeting} />
+          onSelectEvent={revealEvent} />
       </div>
 
       {exportError && (
@@ -172,7 +172,7 @@ export default function ExportReview({ review, pageType, dispatch, onConfirm, on
           id="exportConfirmButton"
           type="submit"
           className="primary"
-          disabled={!review.meetings.length}
+          disabled={!review.events.length}
         >
           Create .ICS File
         </button>
