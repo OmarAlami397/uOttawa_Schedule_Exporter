@@ -1,9 +1,9 @@
 import { useLayoutEffect, useRef } from "react";
 import { DAYS } from "../state/review-state.js";
 
-export default function EditableField({ meeting, field, label, type = "text", error, onEdit }) {
+export default function EditableField({ event, field, label, type = "text", error, onEdit }) {
   const inputRef = useRef(null);
-  const id = `${meeting.id}-${field}`;
+  const id = `${event.id}-${field}`;
   const required = ["date", "time", "select"].includes(type);
 
   useLayoutEffect(() => {
@@ -13,11 +13,11 @@ export default function EditableField({ meeting, field, label, type = "text", er
   const props = {
     id,
     ref: inputRef,
-    value: meeting[field],
+    value: event[field],
     required,
     "aria-invalid": error ? true : undefined,
     "aria-describedby": error ? `${id}-error` : undefined,
-    onChange: (event) => onEdit(meeting.id, field, event.target.value),
+    onChange: (changeEvent) => onEdit(event.id, field, changeEvent.target.value),
   };
 
   return (

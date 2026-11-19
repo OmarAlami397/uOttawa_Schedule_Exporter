@@ -1,4 +1,4 @@
-import { DAYS, isIsoDate, validateMeeting } from "../services/schedule-preview.js";
+import { DAYS, isIsoDate, validateEvent } from "../services/schedule-preview.js";
 
 export { DAYS };
 export const CLASS_PAGE = "My Class Schedule";
@@ -34,11 +34,11 @@ export function timeToInput(value) {
   return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
 }
 
-export const emptyReview = { courses: [], meetings: [] };
+export const emptyReview = { courses: [], events: [] };
 
 export function createReview(data, pageType) {
   const courses = new Map();
-  const meetings = data.map((item, index) => {
+  const events = data.map((item, index) => {
     const courseCode = String(item.courseCode ?? "");
     const prefix = courseCode.split("-")[0].trim() || "Untitled course";
 
@@ -56,7 +56,7 @@ export function createReview(data, pageType) {
 
     // Explicitly read public properties: Exam stores its values behind getters.
     return {
-      id: `meeting-${index}`,
+      id: `event-${index}`,
       courseId: courses.get(prefix).id,
       courseCode,
       courseName: String(item.courseName ?? ""),
@@ -75,7 +75,7 @@ export function createReview(data, pageType) {
     };
   });
 
-  return { courses: [...courses.values()], meetings };
+  return { courses: [...courses.values()], events };
 }
 
 export function reviewReducer(state, action) {
@@ -86,7 +86,7 @@ export function reviewReducer(state, action) {
     case "edit":
       return {
         ...state,
-        meetings: state.meetings.map((item) =>
+        events: state.events.map((item) =>
           item.id === action.id ? { ...item, [action.field]: action.value } : item,
         ),
       };
@@ -99,34 +99,34 @@ export function reviewReducer(state, action) {
         ),
       };
 
-    case "toggle-meeting":
+    case "toggle-event":
       return {
         ...state,
-        meetings: state.meetings.map((item) =>
+        events: state.events.map((item) =>
           item.id === action.id ? { ...item, expanded: !item.expanded } : item,
         ),
       };
 
     case "remove": {
-      const meetings = state.meetings.filter((item) => !action.ids.includes(item.id));
+      const events = state.events.filter((item) => !action.ids.includes(item.id));
 
       return {
-        meetings,
+        events,
         courses: state.courses.filter((course) =>
-          meetings.some((item) => item.courseId === course.id),
+          events.some((item) => item.courseId === course.id),
         ),
       };
     }
 
     case "reveal": {
-      const meeting = state.meetings.find((item) => item.id === action.id);
+      const event = state.events.find((item) => item.id === action.id);
 
       return {
-        meetings: state.meetings.map((item) =>
+        events: state.events.map((item) =>
           item.id === action.id ? { ...item, expanded: true } : item,
         ),
         courses: state.courses.map((course) =>
-          course.id === meeting?.courseId ? { ...course, expanded: true } : course,
+          course.id === event?.courseId ? { ...course, expanded: true } : course,
         ),
       };
     }
@@ -137,12 +137,12 @@ export function reviewReducer(state, action) {
 }
 
 export function validateReview(review, pageType) {
-  return review.meetings.flatMap((item) =>
-    validateMeeting(item, pageType === CLASS_PAGE ? "class" : "exam"));
+  return review.events.flatMap((item) =>
+    validateEvent(item, pageType === CLASS_PAGE ? "class" : "exam"));
 }
 
 export function toExportData(review, pageType) {
-  return review.meetings.map((item) => {
+  return review.events.map((item) => {
     const common = { courseCode: item.courseCode, room: item.room };
     const time = `${item.startTime} - ${item.endTime}`;
 

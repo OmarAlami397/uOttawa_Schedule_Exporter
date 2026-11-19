@@ -216,25 +216,25 @@ button:disabled {
   line-height: 1.5;
   overflow-wrap: anywhere;
 }
-.meeting-fields {
+.event-fields {
   display: grid;
   gap: 10px;
 }
-.meeting-details,
-.meeting-schedule {
+.event-details,
+.event-schedule {
   display: grid;
   gap: 12px;
 }
-.meeting-details {
+.event-details {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
-.meeting-details-exam {
+.event-details-exam {
   grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
 }
-.meeting-schedule {
+.event-schedule {
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
-.meeting-schedule-exam {
+.event-schedule-exam {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 .export-field {
@@ -510,7 +510,7 @@ body:has(#exporting-view) {
 .calendar-event-conflict {
   border: 2px dashed #92400e;
 }
-.calendar-meeting-details {
+.calendar-event-details {
   position: fixed;
   pointer-events: none;
   z-index: 1100;
@@ -531,13 +531,13 @@ body:has(#exporting-view) {
   text-align: left;
   overflow-wrap: anywhere;
 }
-.calendar-meeting-details strong {
+.calendar-event-details strong {
   font-size: 14px;
 }
-.calendar-meeting-conflict {
+.calendar-event-conflict-message {
   color: #92400e;
 }
-.calendar-meeting-help {
+.calendar-event-help {
   margin-top: 4px;
   color: #64748b;
   font-size: 11px;
