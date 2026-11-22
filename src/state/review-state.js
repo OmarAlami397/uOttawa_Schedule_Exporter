@@ -71,7 +71,7 @@ export function createReview(data, pageType) {
       examDate: dateToInput(item.examDate),
       startTime: parts.length === 2 ? timeToInput(parts[0]) : "",
       endTime: parts.length === 2 ? timeToInput(parts[1]) : "",
-      expanded: true,
+      expanded: false,
     };
   });
 

@@ -1,0 +1,135 @@
+/* Review layout, tabs, notices and export footer. */
+
+.review-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+.review-heading h2,
+#export-count {
+  margin: 0;
+}
+#export-count {
+  color: #555;
+  font-size: 12px;
+  font-weight: 600;
+  text-align: left;
+  white-space: nowrap;
+}
+#export-list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 2px;
+  margin-bottom: 12px;
+}
+
+.export-empty {
+  margin: 0;
+  padding: 24px 12px;
+  border: 1px dashed #ccc;
+  border-radius: 10px;
+  color: #666;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.export-controls {
+  flex-direction: row; /* Make export/cancel side-by-side */
+}
+.export-controls button {
+  padding: 8px 10px;
+}
+
+/* Both review tabs share the same size, keeping the popup and footer steady.
+   The editor list scrolls within the space available above the controls. */
+body:has(#exporting-view) {
+  width: 760px;
+  padding: 8px 10px;
+}
+#exporting-view {
+  display: flex;
+  flex-direction: column;
+  height: 584px;
+}
+#exporting-view > * {
+  flex-shrink: 0;
+}
+#exporting-view > .review-panel:not([hidden]) {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+.review-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 8px;
+  border-bottom: 1px solid #d0d5dd;
+}
+.review-tabs button {
+  padding: 6px 4px;
+  border-radius: 6px 6px 0 0;
+  border-bottom: 3px solid transparent;
+  background: transparent;
+  color: #555;
+  font-size: 13px;
+}
+.review-tabs [aria-selected="true"] {
+  color: #185abc;
+  background: #eaf1fc;
+  border-bottom-color: #185abc;
+}
+
+.review-heading h2 { display: flex; align-items: center; gap: 12px; }
+
+.review-heading .popup-brand-logo { width: 32px; height: 32px; border-radius: 6px; }
+
+#export-count { color: var(--popup-muted); }
+
+#exporting-view { box-sizing: border-box; padding: 10px 10px 0; }
+.review-heading { padding: 2px 0 14px; margin-bottom: 0; }
+.review-heading h2 { font-size: 24px; line-height: 1.2; }
+#export-count { padding: 5px 9px; background: var(--popup-wash); border: 1px solid var(--popup-line); border-radius: 5px; font-size: 12px; font-weight: 500; }
+#export-list { gap: 12px; padding: 2px 3px 6px; margin-bottom: 0; scrollbar-width: thin; scrollbar-color: #cbbdb1 transparent; }
+
+.popup-review-tools { display: flex; flex-shrink: 0; justify-content: space-between; align-items: center; gap: 12px; margin: -6px 3px 10px; text-align: left; }
+.popup-review-tools p { margin: 0; color: var(--popup-muted); font-size: 12px; }
+.popup-text-action { width: auto; flex-shrink: 0; min-height: 28px; padding: 4px 6px; background: transparent; color: var(--popup-garnet); font-size: 12px; font-weight: 500; }
+.popup-text-action:hover { background: var(--popup-soft); }
+.popup-error-summary { flex-shrink: 0; padding: 14px 16px; border: 1px solid #d9aeb6; border-left: 3px solid var(--popup-garnet); border-radius: 6px; background: #fcf0ef; }
+.popup-error-summary h3 { margin: 0 0 4px; color: var(--popup-garnet); font-size: 14px; }
+.popup-error-summary p { margin: 0; font-size: 12px; color: var(--popup-ink); }
+.popup-error-summary ul { margin: 8px 0 0; padding-left: 16px; }
+.popup-error-summary li { color: var(--popup-garnet); }
+.popup-error-link { width: auto; padding: 3px 0; background: transparent; color: var(--popup-garnet); font-size: 12px; line-height: 1.5; text-align: left; text-decoration: underline; text-underline-offset: 2px; }
+.popup-removal-notice { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 6px 12px; margin-top: 8px; background: var(--popup-wash); border: 1px solid var(--popup-line); border-radius: 5px; font-size: 12px; text-align: left; }
+.popup-removal-actions { display: flex; align-items: center; gap: 4px; }
+.popup-dismiss-removal { min-width: 28px; color: var(--popup-muted); font-size: 18px; line-height: 1; }
+.popup-removal-notice + .export-controls { margin-top: 8px; }
+
+.export-empty { border-color: var(--popup-line); border-radius: 4px; color: var(--popup-muted); }
+
+.review-tabs { padding: 4px; gap: 4px; border: 1px solid var(--popup-line); border-radius: 7px; background: var(--popup-wash); margin-bottom: 16px; }
+.review-tabs button { padding: 7px 12px; border: 0; font-size: 12px; font-weight: 500; color: var(--popup-muted); border-radius: 4px; }
+.review-tabs [aria-selected="true"] {
+  color: var(--popup-garnet);
+  background: var(--popup-card);
+  box-shadow: 0 1px 4px #49341d12;
+}
+.review-tabs button:not([aria-selected="true"]):hover { background: #e9e1d6; color: var(--popup-ink); }
+.export-controls { padding: 12px 0 6px; margin-top: 12px; border-top: 1px solid var(--popup-line); gap: 10px; }
+.export-controls button { padding: 11px 16px; font-size: 12px; }
+#exportConfirmButton { flex: 1; width: auto; font-weight: 600; box-shadow: 0 2px 4px #751e2a12; }
+#exportCancelButton { width: auto; min-width: 96px; background: transparent; }
+#exportCancelButton:hover { background: var(--popup-wash); }
+
+@media (pointer: coarse) {
+  .popup-text-action { min-height: 44px; }
+  .popup-dismiss-removal { min-width: 44px; }
+}

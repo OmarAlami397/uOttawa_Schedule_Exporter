@@ -1,0 +1,151 @@
+/* Palette, typography, buttons, focus and shared utilities. */
+
+:root {
+  color-scheme: light;
+  --popup-paper: #fbf8ef;
+  --popup-card: #fffdf8;
+  --popup-wash: #f1ece3;
+  --popup-ink: #332b2b;
+  --popup-muted: #756962;
+  --popup-line: #e2d9ce;
+  --popup-garnet: #751e2a;
+  --popup-garnet-hover: #5e1822;
+  --popup-soft: #f3e2e3;
+}
+
+body {
+  width: 380px;
+  padding: 10px 15px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background-color: #f9f9f9;
+  margin: 0;
+  text-align: center; /* Center-align all content */
+}
+h1 {
+  font-size: 16px;
+  margin: 0 0 12px;
+  color: #333;
+}
+h2 {
+  font-size: 15px;
+  margin: 0 0 12px;
+  color: #333;
+  text-align: left;
+}
+
+/* Button Container */
+.button-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px; /* Space between buttons */
+}
+
+/* All Buttons */
+button {
+  width: 100%;
+  padding: 10px;
+  font-size: 14px;
+  font-weight: 500;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  box-sizing: border-box; /* Ensures padding doesn't break width */
+}
+
+/* Primary Button (Google / Sign In / Confirm) */
+.primary,
+#exportToGoogleButton,
+#signInButton {
+  background-color: #4285f4; /* Google Blue */
+  color: white;
+  font-weight: bold;
+}
+.primary:not(:disabled):hover,
+#exportToGoogleButton:not(:disabled):hover,
+#signInButton:not(:disabled):hover {
+  background-color: #4285f4;
+}
+
+/* Secondary Buttons (ICS / Sign Out / Cancel) */
+.secondary,
+#signOutButton {
+  background-color: #f0f0f0;
+  color: #555;
+  border: 1px solid #ddd;
+}
+.secondary:not(:disabled):hover,
+#signOutButton:not(:disabled):hover {
+  background-color: #e0e0e0;
+}
+
+/* Disabled State */
+button:disabled {
+  background-color: #ccc;
+  color: #888;
+  cursor: not-allowed;
+  border-color: #ccc;
+}
+
+.export-item input:focus-visible,
+.export-item select:focus-visible,
+button:focus-visible {
+  outline: 2px solid #4285f4;
+  outline-offset: 2px;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+body { background: var(--popup-paper); color: var(--popup-ink); -webkit-font-smoothing: antialiased; }
+h1, h2 {
+  font-family: Georgia, "Times New Roman", serif;
+  font-weight: 400;
+  letter-spacing: -.5px;
+  color: var(--popup-ink);
+}
+
+.popup-brand-logo {
+  display: block;
+  flex: 0 0 auto;
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  object-fit: contain;
+}
+
+.primary {
+  background: var(--popup-garnet);
+  border-color: var(--popup-garnet);
+  color: #fffaf5;
+}
+.primary:not(:disabled):hover { background: var(--popup-garnet-hover); }
+button { border-radius: 6px; transition: background-color .15s ease, border-color .15s ease, box-shadow .15s ease; }
+.secondary, #signOutButton, #signInButton {
+  background: var(--popup-wash);
+  border-color: var(--popup-line);
+  color: var(--popup-ink);
+}
+#signInButton { border: 1px solid var(--popup-line); font-weight: 500; }
+.secondary:not(:disabled):hover, #signOutButton:not(:disabled):hover,
+#signInButton:not(:disabled):hover { background: #eae2d8; }
+button:disabled, #exportToGoogleButton:disabled, #signInButton:disabled, #signOutButton:disabled {
+  background: #e7ddd8;
+  border-color: var(--popup-line);
+  color: #83736f;
+}
+
+.export-item input:focus-visible, .export-item select:focus-visible, button:focus-visible { outline-color: var(--popup-garnet); }
+
+summary:focus-visible { outline: 2px solid var(--popup-garnet); outline-offset: 3px; }
+
+@media (prefers-reduced-motion: reduce) { button { transition: none; } }

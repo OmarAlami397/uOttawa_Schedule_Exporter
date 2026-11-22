@@ -13,17 +13,41 @@ export function checkForSchedulePage() {
 }
 
 export function useExtension() {
-  const [pageType, setPageType] = useState(null);
+  const [detection, setDetection] = useState({ phase: "checking", pageType: null });
+  const [detectionAttempt, setDetectionAttempt] = useState(0);
   const [user, setUser] = useState(null);
   const [busy, setBusy] = useState(true);
-  const [status, setStatus] = useState("Loading...");
+  const [status, setStatus] = useState("");
   const mounted = useRef(false);
 
   useEffect(() => {
     mounted.current = true;
     let cancelled = false;
 
-    async function initialize() {
+    async function loadAccount() {
+      try {
+        const saved = await getSavedUserData();
+        if (!cancelled) setUser(saved.authToken && saved.userInfo?.email ? saved.userInfo : null);
+      } catch (error) {
+        console.error("Account loading error:", error);
+        if (!cancelled) setStatus("Couldn’t load your Google account.");
+      } finally {
+        if (!cancelled) setBusy(false);
+      }
+    }
+
+    loadAccount();
+
+    return () => {
+      cancelled = true;
+      mounted.current = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function detectSchedule() {
       try {
         const [tab] = await chrome.tabs.query({
           active: true,
@@ -41,31 +65,21 @@ export function useExtension() {
             null;
         }
 
-        const saved = await getSavedUserData();
-        if (cancelled) return;
-
-        setPageType(detected);
-        setUser(saved.authToken && saved.userInfo?.email ? saved.userInfo : null);
-        setStatus(
-          detected
-            ? `Ready to export ${detected}!`
-            : "Please navigate to your Class or Exam Schedule page.",
-        );
+        if (!cancelled) setDetection({ phase: detected ? "ready" : "unsupported", pageType: detected });
       } catch (error) {
-        console.error("Initialization error:", error);
-        if (!cancelled) setStatus("Error loading. Please reopen the extension and try again.");
-      } finally {
-        if (!cancelled) setBusy(false);
+        console.error("Schedule detection error:", error);
+        if (!cancelled) setDetection({ phase: "check-error", pageType: null });
       }
     }
 
-    initialize();
+    detectSchedule();
+    return () => { cancelled = true; };
+  }, [detectionAttempt]);
 
-    return () => {
-      cancelled = true;
-      mounted.current = false;
-    };
-  }, []);
+  function checkAgain() {
+    setDetection({ phase: "checking", pageType: null });
+    setDetectionAttempt((attempt) => attempt + 1);
+  }
 
   async function signIn() {
     setBusy(true);
@@ -87,6 +101,7 @@ export function useExtension() {
 
   async function signOut() {
     setBusy(true);
+    setStatus("Signing out…");
 
     try {
       await revokeAuthToken();
@@ -102,5 +117,5 @@ export function useExtension() {
     }
   }
 
-  return { pageType, user, busy, status, setStatus, signIn, signOut, mounted };
+  return { ...detection, user, busy, status, setStatus, signIn, signOut, checkAgain, mounted };
 }

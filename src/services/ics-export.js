@@ -85,7 +85,7 @@ function icsEscape(str) {
 /**
  * Export to ICS
  */
-export function exportToIcs(data, type) {
+export function exportToIcs(data, type, { filename = `uOttawa_Schedule_${Date.now()}.ics` } = {}) {
   const events = [];
   const prodId = "-//uO Schedule Sync//EN";
 
@@ -169,7 +169,7 @@ export function exportToIcs(data, type) {
 
   const a = document.createElement("a");
   a.href = url;
-  a.download = `uOttawa_Schedule_${Date.now()}.ics`;
+  a.download = filename;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);

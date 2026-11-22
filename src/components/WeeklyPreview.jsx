@@ -121,16 +121,18 @@ export default function WeeklyPreview({
       </div>
 
       {warnings.length > 0 && (
-        <div className="preview-warning" role="status">
-          <p>{warnings.length} {warnings.length === 1 ? "event needs" : "events need"} attention and cannot be shown:</p>
-          <ul>
+        <div className="preview-warning">
+          <p id="preview-warning-label" role="status">
+            {warnings.length} {warnings.length === 1 ? "event needs" : "events need"} attention
+          </p>
+          <ul aria-labelledby="preview-warning-label">
             {warnings.map(({ event, issues }) => (
               <li key={event.id}>
                 <button type="button" className="preview-warning-link"
                   onClick={() => onSelectEvent(event.id, issues[0].field)}>
                   {event.courseCode || "Untitled course"} · {event.component || event.examType || "Event"}
+                  {event.componentDay && ` · ${event.componentDay}`}
                 </button>
-                <span>{issues.map((issue) => issue.message).join(" ")}</span>
               </li>
             ))}
           </ul>
@@ -145,7 +147,7 @@ export default function WeeklyPreview({
 
       {!bounds ? (
         <p className="export-empty">
-          {hasEvents ? "No valid events to preview. Fix the dates and times in Edit events." : "No events left to preview. Cancel to start again."}
+          {hasEvents ? "No valid events to preview." : "No events left to preview."}
         </p>
       ) : (
         <>

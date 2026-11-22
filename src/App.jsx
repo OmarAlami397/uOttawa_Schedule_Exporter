@@ -4,28 +4,29 @@ import { parseExamTable } from "./parsers/exam-parser.js";
 import { exportToIcs } from "./services/ics-export.js";
 import ExportReview from "./components/ExportReview.jsx";
 import MainView from "./components/MainView.jsx";
-import Toast from "./components/Toast.jsx";
 import {
   CLASS_PAGE,
   createReview,
   emptyReview,
-  reviewReducer,
   toExportData,
 } from "./state/review-state.js";
+import { createReviewSession, reviewSessionReducer } from "./state/review-session.js";
 import { useExtension } from "./hooks/useExtension.js";
 
 export default function App() {
   const extension = useExtension();
-  const [review, dispatch] = useReducer(reviewReducer, emptyReview);
+  const [{ review, lastRemoval }, dispatch] = useReducer(reviewSessionReducer, emptyReview, createReviewSession);
   const [view, setView] = useState("main");
-  const [parsing, setParsing] = useState(false);
-  const [toast, setToast] = useState(null);
+  const [readPhase, setReadPhase] = useState(null);
+  const [exportResult, setExportResult] = useState(null);
+  const phase = readPhase ?? extension.phase;
 
   async function startExport() {
-    if (extension.busy || parsing || !extension.pageType) return;
+    if (extension.busy || readPhase === "reading" || !extension.pageType) return;
 
-    setParsing(true);
-    extension.setStatus("Parsing schedule...");
+    setReadPhase("reading");
+    setExportResult(null);
+    extension.setStatus("");
 
     try {
       const data =
@@ -34,7 +35,7 @@ export default function App() {
       if (!extension.mounted.current) return;
 
       if (!data.length) {
-        extension.setStatus("Could not find any schedule data.");
+        setReadPhase("empty");
         return;
       }
 
@@ -42,46 +43,51 @@ export default function App() {
         type: "reset",
         review: createReview(data, extension.pageType),
       });
+      setReadPhase(null);
       setView("exporting");
     } catch (error) {
       console.error("Parsing failed:", error);
-      if (extension.mounted.current)
-        extension.setStatus("Failed to parse schedule. Please try again.");
-    } finally {
-      if (extension.mounted.current) setParsing(false);
+      if (extension.mounted.current) setReadPhase("error");
     }
   }
 
   function confirmExport() {
-    const count = exportToIcs(toExportData(review, extension.pageType), extension.pageType);
+    const { pageType } = extension;
+    const filename = pageType === CLASS_PAGE ? "uOttawa_Class_Schedule.ics" : "uOttawa_Exam_Schedule.ics";
+    const eventCount = exportToIcs(toExportData(review, pageType), pageType, { filename });
 
-    if (!count) throw new Error("No valid events to export. Check the event dates and times.");
+    if (!eventCount) throw new Error("No valid events to export. Check the event dates and times.");
 
+    setExportResult({ filename, eventCount, pageType });
+    dispatch({ type: "dismiss-removal" });
     setView("main");
-    setToast({ message: "Export successful!" });
-    extension.setStatus(`Successfully exported ${count} ${count === 1 ? "item" : "items"}.`);
   }
 
   function cancelExport() {
+    dispatch({ type: "dismiss-removal" });
     setView("main");
-    extension.setStatus(`Export cancelled. Ready to export ${extension.pageType}!`);
+    setExportResult(null);
+    extension.setStatus("");
   }
 
-  return (
-    <>
-      {view === "main" ? (
-        <MainView extension={extension} parsing={parsing} onStart={startExport} />
-      ) : (
-        <ExportReview
-          review={review}
-          pageType={extension.pageType}
-          dispatch={dispatch}
-          onConfirm={confirmExport}
-          onCancel={cancelExport}
-        />
-      )}
-
-      <Toast toast={toast} />
-    </>
+  return view === "main" ? (
+    <MainView
+      extension={extension}
+      phase={phase}
+      onStart={startExport}
+      onRetry={readPhase ? startExport : extension.checkAgain}
+      exportResult={exportResult}
+      onResumeReview={() => setView("exporting")}
+    />
+  ) : (
+    <ExportReview
+      review={review}
+      pageType={extension.pageType}
+      dispatch={dispatch}
+      lastRemoval={lastRemoval}
+      onUndoRemoval={() => dispatch({ type: "undo-remove" })}
+      onConfirm={confirmExport}
+      onCancel={cancelExport}
+    />
   );
 }

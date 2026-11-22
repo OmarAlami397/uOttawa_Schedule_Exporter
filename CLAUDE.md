@@ -41,8 +41,9 @@ Reviews currently live in memory; closing the popup loses edits.
   and triggers a file download. Returns the number of exported events, or zero.
 - `src/services/google-auth.js`: Chrome identity OAuth flow, user-info lookup,
   and auth storage/revocation. Auth keys are `authToken` and `userInfo`.
-- `src/components/`: main view, review editor, weekly preview, cards, editable
-  fields, and toast. `src/styles/popup.css` contains popup styling.
+- `src/components/`: main view, review editor, weekly preview, cards, and editable
+  fields. `src/styles/popup.css` imports the base, menu, schedule review,
+  event editor, and weekly calendar styles.
 - `extension/manifest.json`: permissions, OAuth settings, popup, icons, and worker.
   `extension/background.js` is currently a placeholder service worker.
 - `vite.config.js`: bundles the popup and copies the manifest, worker, and icons
@@ -50,6 +51,7 @@ Reviews currently live in memory; closing the popup loses edits.
 
 ## Implementation conventions
 
+- For popup visual styling, use the [popup style guide](docs/popup-style-guide.md).
 - Follow the existing JavaScript ES modules, React function components/hooks,
   double quotes, semicolons, and two-space indentation. Keep JSX in `.jsx` files.
 - Keep review state changes in the reducer and calendar calculations in shared
