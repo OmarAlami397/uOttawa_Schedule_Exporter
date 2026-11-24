@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { CLASS_PAGE, validateReview } from "../state/review-state.js";
+import { CLASS_PAGE, eventsWithCourseNames, validateReview } from "../state/review-state.js";
 import { addDays, buildWeekPreview, clampPreviewWeek, initialPreviewWeek, preparePreview } from "../services/schedule-preview.js";
 import WeeklyPreview from "./WeeklyPreview.jsx";
 import BrandHeading from "./BrandHeading.jsx";
@@ -15,8 +15,9 @@ export default function ExportReview({ review, pageType, dispatch, onConfirm, on
   const [refreshing, setRefreshing] = useState(false);
   const [refreshNotice, setRefreshNotice] = useState(null);
   const [activeTab, setActiveTab] = useState("edit");
-  const errors = useMemo(() => attempted ? validateReview(review, pageType) : [], [attempted, review, pageType]);
-  const prepared = useMemo(() => preparePreview(review.events, isClass ? "class" : "exam"), [review.events, isClass]);
+  const events = useMemo(() => eventsWithCourseNames(review), [review]);
+  const prepared = useMemo(() => preparePreview(events, isClass ? "class" : "exam"), [events, isClass]);
+  const errors = attempted ? prepared.issues : [];
   const [selectedWeek, setSelectedWeek] = useState(() => initialPreviewWeek(prepared.bounds));
   const weekStart = clampPreviewWeek(selectedWeek, prepared.bounds);
   const preview = useMemo(() => buildWeekPreview(prepared, weekStart), [prepared, weekStart]);
@@ -102,6 +103,11 @@ export default function ExportReview({ review, pageType, dispatch, onConfirm, on
     dispatch({ type: "edit", id, field, value });
   }
 
+  function editCourse(id, field, value) {
+    setExportError("");
+    dispatch({ type: "edit-course", id, field, value });
+  }
+
   function remove(ids) {
     pendingFocus.current = { kind: "removed", scrollTop: listRef.current?.scrollTop || 0 };
     setExportError("");
@@ -182,7 +188,7 @@ export default function ExportReview({ review, pageType, dispatch, onConfirm, on
         </div>
         <div id="review-panel-edit" className="review-panel" role="tabpanel" aria-labelledby="review-tab-edit" hidden={activeTab !== "edit"}>
           <div className="popup-review-tools">
-            <p>Review the details. Expand an event to make changes.</p>
+            <p>Expand a course or event to edit its details.</p>
             {review.events.length > 0 && <button type="button" className="popup-text-action"
               onClick={() => dispatch({ type: "expand-all", expanded: !allExpanded })}>{allExpanded ? "Collapse all" : "Expand all"}</button>}
           </div>
@@ -199,8 +205,8 @@ export default function ExportReview({ review, pageType, dispatch, onConfirm, on
             </section>}
             <p className="sr-only" role="status" aria-live="polite">{attempted ? `${errors.length} ${errors.length === 1 ? "field needs" : "fields need"} attention.` : ""}</p>
             {review.courses.map((course) => <CourseCard key={course.id} course={course}
-              events={review.events.filter((event) => event.courseId === course.id)} isClass={isClass}
-              errors={errors} dispatch={dispatch} onEdit={edit} onRemove={remove} onReveal={revealEvent} />)}
+              events={events.filter((event) => event.courseId === course.id)} isClass={isClass}
+              errors={errors} dispatch={dispatch} onEdit={edit} onCourseEdit={editCourse} onRemove={remove} onReveal={revealEvent} />)}
             {!review.events.length && <div className="export-empty"><strong>No events to export</strong><p>{lastRemoval ? "Undo the last removal, refresh from the page, or go back to start again." : "Refresh from the page or go back to review your schedule again."}</p></div>}
           </div>
         </div>

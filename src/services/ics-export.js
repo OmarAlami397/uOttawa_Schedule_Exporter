@@ -136,9 +136,12 @@ export function exportToIcs(data, type, { filename = `uOttawa_Schedule_${Date.no
       const dtEnd = formatIcsDate(date, times.end);
       if (!dtStart || !dtEnd) return;
 
+      const details = [item.courseName];
+      if (item.description !== item.courseName) details.push(item.description);
+      details.push(`Type: ${item.examType}`);
       event.push(
         `SUMMARY:${icsEscape(`Exam: ${item.courseCode}`)}`,
-        `DESCRIPTION:${icsEscape(`${item.description}\nType: ${item.examType}`)}`,
+        `DESCRIPTION:${icsEscape(details.filter(Boolean).join("\n"))}`,
         `LOCATION:${icsEscape(item.room)}`,
         `DTSTART:${dtStart}`,
         `DTEND:${dtEnd}`,
