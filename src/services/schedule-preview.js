@@ -182,6 +182,7 @@ export function buildWeekPreview(prepared, weekStart) {
     days.find((day) => day.date === date).occurrences.push({
       eventId: event.id, courseId: event.courseId, date, startMinutes, endMinutes,
       courseCode: event.courseCode,
+      courseName: event.courseName,
       label: prepared.kind === "class" ? event.component || "Class event" : event.examType || "Exam",
       room: event.room,
     });

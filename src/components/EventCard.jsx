@@ -8,7 +8,7 @@ export default function EventCard({ event, isClass, errors, dispatch, onEdit, on
   const title = componentLabel(event, isClass);
   const issues = eventIssues(event, isClass);
   const field = (name, label, type) => (
-    <EditableField event={event} field={name} label={label} type={type}
+    <EditableField record={event} field={name} label={label} type={type}
       error={errors.find((error) => error.id === event.id && error.field === name)?.message}
       onEdit={onEdit} />
   );
@@ -24,16 +24,18 @@ export default function EventCard({ event, isClass, errors, dispatch, onEdit, on
       </div>
       {!event.expanded && <p className="popup-event-summary">{eventSummary(event, isClass)}</p>}
       <div id={contentId} className="card-content" hidden={!event.expanded}>
-        {event.room && <p className="export-item-context">{event.room}</p>}
         <div className="event-fields">
           <div className={`event-details${isClass ? "" : " event-details-exam"}`}>
             {field("courseCode", "Course code")}
             {isClass ? field("component", "Component") : field("description", "Description")}
             {isClass && field("componentDay", "Day", "select")}
+            {field("room", "Location")}
           </div>
           <div className={`event-schedule${isClass ? "" : " event-schedule-exam"}`}>
-            {isClass ? <>{field("startDate", "Start date", "date")}{field("endDate", "End date", "date")}</>
-              : field("examDate", "Exam date", "date")}
+            {isClass ? <>
+              {field("startDate", "Start date", "date")}
+              {field("endDate", "End date", "date")}
+            </> : field("examDate", "Exam date", "date")}
             {field("startTime", "Start time", "time")}
             {field("endTime", "End time", "time")}
           </div>

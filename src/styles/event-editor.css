@@ -100,10 +100,13 @@
   gap: 12px;
 }
 .event-details {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 .event-details-exam {
-  grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+  grid-template-columns: 1fr 2fr 1fr;
+}
+.course-fields {
+  margin-bottom: 16px;
 }
 .event-schedule {
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -114,7 +117,7 @@
 .export-field {
   min-width: 0;
 }
-.export-item label {
+.export-field label {
   display: block;
   font-size: 11px;
   font-weight: 600;
@@ -122,8 +125,8 @@
   margin-bottom: 4px;
   text-transform: uppercase;
 }
-.export-item input,
-.export-item select {
+.export-field input,
+.export-field select {
   width: 100%;
   min-width: 0;
   padding: 7px 8px;
@@ -146,13 +149,13 @@
 .field-error {
   margin: 4px 0 0;
 }
-.export-item [aria-invalid="true"] {
+.export-field [aria-invalid="true"] {
   border-color: #b42318;
 }
 
 .course-card h3, .export-item h4 { color: var(--popup-ink); }
 
-.course-name, .export-item-context, .export-item label { color: var(--popup-muted); }
+.course-name, .export-item-context, .export-field label { color: var(--popup-muted); }
 
 .course-card {
   background: var(--popup-card);
@@ -179,7 +182,7 @@
 .export-item h4 { font-size: 12px; letter-spacing: .5px; }
 .export-item-context { margin-bottom: 12px; font-size: 11px; }
 .event-fields { gap: 14px; }
-.export-item label { font-size: 11px; font-weight: 500; text-transform: none; margin-bottom: 6px; }
+.export-field label { font-size: 11px; font-weight: 500; text-transform: none; margin-bottom: 6px; }
 .card-toggle { min-height: 28px; }
 .card-toggle::before { border-color: var(--popup-muted); }
 
@@ -187,7 +190,7 @@
 
 .remove-event { background: transparent; border-color: transparent; color: var(--popup-muted); padding: 6px 8px; font-size: 11px; font-weight: 400; }
 .remove-event:hover { background: var(--popup-soft); border-color: #e6c6cb; color: var(--popup-garnet); }
-.export-item input, .export-item select {
+.export-field input, .export-field select {
   background: var(--popup-card);
   border-color: var(--popup-line);
   color: var(--popup-ink);
@@ -197,14 +200,14 @@
   min-height: 38px;
   accent-color: var(--popup-garnet);
 }
-.export-item input:hover, .export-item select:hover { border-color: #bda99a; }
+.export-field input:hover, .export-field select:hover { border-color: #bda99a; }
 
-.export-item input:focus-visible, .export-item select:focus-visible { background: #fffefb; }
+.export-field input:focus-visible, .export-field select:focus-visible { background: #fffefb; }
 
 .field-error, .export-error { color: var(--popup-garnet); }
-.export-item [aria-invalid="true"] { border-color: var(--popup-garnet); }
+.export-field [aria-invalid="true"] { border-color: var(--popup-garnet); }
 
 @media (pointer: coarse) {
   .popup-summary-link, .card-toggle, .remove-event { min-height: 44px; }
-  .export-item input, .export-item select { font-size: 16px; }
+  .export-field input, .export-field select { font-size: 16px; }
 }

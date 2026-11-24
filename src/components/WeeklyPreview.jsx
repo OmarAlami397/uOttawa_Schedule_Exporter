@@ -34,6 +34,7 @@ function EventDetails({ event, anchor }) {
     <div id="preview-event-details" className="calendar-event-details" role="tooltip"
       ref={detailsRef} style={position || { left: 0, top: 0, visibility: "hidden" }}>
       <strong>{event.courseCode || "Untitled course"}</strong>
+      {event.courseName && <span>{event.courseName}</span>}
       <span>{event.label}</span>
       <span>{dateLabel(event.date, { weekday: "long", month: "short", day: "numeric", year: "numeric" })}</span>
       <span>{formatTime(event.startMinutes)} – {formatTime(event.endMinutes)}</span>

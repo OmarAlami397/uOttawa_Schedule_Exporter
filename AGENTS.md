@@ -99,6 +99,6 @@ Reviews currently live in memory; closing the popup loses edits.
 
 `PLAN.md`, when present, is an ignored local roadmap. Consult it for relevant
 feature work, but verify implementation in source; unchecked items are planned,
-not existing features. Its next stages cover shared course dates, exclusions,
-and saved drafts/reset. Keep `README.md` empty for now, as requested there.
+not existing features. Its next stages cover exclusions and saved drafts/reset.
+Keep `README.md` empty for now, as requested there.
 Do not add `PLAN.md` to version control as part of routine changes.

@@ -37,6 +37,7 @@ export function timeToInput(value) {
 export const emptyReview = { courses: [], events: [] };
 
 export function createReview(data, pageType) {
+  const isClass = pageType === CLASS_PAGE;
   const courses = new Map();
   const events = data.map((item, index) => {
     const courseCode = String(item.courseCode ?? "");
@@ -46,10 +47,15 @@ export function createReview(data, pageType) {
       courses.set(prefix, {
         id: `course-${courses.size}`,
         code: prefix,
+        courseName: "",
         expanded: false,
       });
     }
 
+    const course = courses.get(prefix);
+    if (!course.courseName) {
+      course.courseName = String((isClass ? item.courseName : item.description) ?? "").trim();
+    }
     const parts = String(
       pageType === CLASS_PAGE ? (item.componentTime ?? "") : (item.schedule ?? ""),
     ).split(/\s*[-\u2013]\s*/);
@@ -57,9 +63,8 @@ export function createReview(data, pageType) {
     // Explicitly read public properties: Exam stores its values behind getters.
     return {
       id: `event-${index}`,
-      courseId: courses.get(prefix).id,
+      courseId: course.id,
       courseCode,
-      courseName: String(item.courseName ?? ""),
       component: String(item.component ?? ""),
       componentDay: DAYS.includes(item.componentDay) ? item.componentDay : "",
       room: String(item.room ?? ""),
@@ -78,6 +83,11 @@ export function createReview(data, pageType) {
   return { courses: [...courses.values()], events };
 }
 
+export function eventsWithCourseNames(review) {
+  const courses = new Map(review.courses.map((course) => [course.id, course]));
+  return review.events.map((event) => ({ ...event, courseName: courses.get(event.courseId).courseName }));
+}
+
 export function reviewReducer(state, action) {
   switch (action.type) {
     case "reset":
@@ -89,6 +99,13 @@ export function reviewReducer(state, action) {
         events: state.events.map((item) =>
           item.id === action.id ? { ...item, [action.field]: action.value } : item,
         ),
+      };
+
+    case "edit-course":
+      return {
+        ...state,
+        courses: state.courses.map((course) =>
+          course.id === action.id ? { ...course, [action.field]: action.value } : course),
       };
 
     case "toggle-course":
@@ -142,14 +159,13 @@ export function validateReview(review, pageType) {
 }
 
 export function toExportData(review, pageType) {
-  return review.events.map((item) => {
-    const common = { courseCode: item.courseCode, room: item.room };
+  return eventsWithCourseNames(review).map((item) => {
+    const common = { courseCode: item.courseCode, courseName: item.courseName, room: item.room };
     const time = `${item.startTime} - ${item.endTime}`;
 
     return pageType === CLASS_PAGE
       ? {
           ...common,
-          courseName: item.courseName,
           component: item.component,
           componentDay: item.componentDay,
           componentTime: time,
