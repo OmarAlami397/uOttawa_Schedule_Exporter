@@ -8,10 +8,12 @@ import { componentLabel } from "../services/event-summary.js";
 
 const UNDO_TIMEOUT_MS = 10_000;
 
-export default function ExportReview({ review, pageType, dispatch, onConfirm, onCancel, lastRemoval, onUndoRemoval }) {
+export default function ExportReview({ review, pageType, dispatch, onConfirm, onCancel, onRefresh, lastRemoval, onUndoRemoval }) {
   const isClass = pageType === CLASS_PAGE;
   const [attempted, setAttempted] = useState(false);
   const [exportError, setExportError] = useState("");
+  const [refreshing, setRefreshing] = useState(false);
+  const [refreshNotice, setRefreshNotice] = useState(null);
   const [activeTab, setActiveTab] = useState("edit");
   const errors = useMemo(() => attempted ? validateReview(review, pageType) : [], [attempted, review, pageType]);
   const prepared = useMemo(() => preparePreview(review.events, isClass ? "class" : "exam"), [review.events, isClass]);
@@ -24,6 +26,8 @@ export default function ExportReview({ review, pageType, dispatch, onConfirm, on
   const listRef = useRef(null);
   const headingRef = useRef(null);
   const cancelRef = useRef(null);
+  const refreshRef = useRef(null);
+  const refreshPending = useRef(false);
   const removalNoticeRef = useRef(null);
   const undoRef = useRef(null);
   const pendingFocus = useRef(null);
@@ -48,6 +52,12 @@ export default function ExportReview({ review, pageType, dispatch, onConfirm, on
   useLayoutEffect(() => {
     headingRef.current?.focus();
   }, []);
+
+  useLayoutEffect(() => {
+    if (!refreshing && refreshNotice) {
+      refreshRef.current?.focus({ preventScroll: true });
+    }
+  }, [refreshing, refreshNotice]);
 
   useLayoutEffect(() => {
     const target = pendingFocus.current;
@@ -105,9 +115,33 @@ export default function ExportReview({ review, pageType, dispatch, onConfirm, on
     onUndoRemoval();
   }
 
+  async function refresh() {
+    if (refreshPending.current) return;
+    refreshPending.current = true;
+    setRefreshing(true);
+    setRefreshNotice(null);
+
+    try {
+      await onRefresh();
+      pendingFocus.current = null;
+      setAttempted(false);
+      setExportError("");
+      setSelectedWeek(null);
+      setRefreshNotice({ message: "Schedule refreshed from the page.", error: false });
+    } catch (error) {
+      setRefreshNotice({
+        message: `${error.message || "Could not refresh the schedule. Try again."} Your current review has been kept.`,
+        error: true,
+      });
+    } finally {
+      refreshPending.current = false;
+      setRefreshing(false);
+    }
+  }
+
   function confirm(event) {
     event.preventDefault();
-    if (!review.events.length) return;
+    if (refreshPending.current || !review.events.length) return;
     setAttempted(true);
     const validation = validateReview(review, pageType);
     if (validation.length) {
@@ -126,59 +160,72 @@ export default function ExportReview({ review, pageType, dispatch, onConfirm, on
           {review.courses.length} {review.courses.length === 1 ? "course" : "courses"} · {review.events.length} {isClass ? "recurring" : "exam"} {review.events.length === 1 ? "event" : "events"}
         </p>
       </header>
-      <div className="review-tabs" role="tablist" aria-label="Schedule review">
-        {[["edit", "Edit events"], ["preview", "Weekly preview"]].map(([tab, label]) => (
-          <button key={tab} id={`review-tab-${tab}`} type="button" role="tab"
-            aria-selected={activeTab === tab} aria-controls={`review-panel-${tab}`}
-            tabIndex={activeTab === tab ? 0 : -1} ref={(element) => { tabRefs.current[tab] = element; }}
-            onClick={() => setActiveTab(tab)} onKeyDown={navigateTabs}>{label}</button>
-        ))}
+      <div className="popup-refresh-tools">
+        <p id="refresh-help">Re-read the schedule page and replace edits and removals.</p>
+        <button type="button" className="secondary" ref={refreshRef} onClick={refresh}
+          disabled={refreshing} aria-describedby="refresh-help">
+          {refreshing ? "Refreshing..." : isClass ? "Refresh courses" : "Refresh exams"}
+        </button>
       </div>
-      <div id="review-panel-edit" className="review-panel" role="tabpanel" aria-labelledby="review-tab-edit" hidden={activeTab !== "edit"}>
-        <div className="popup-review-tools">
-          <p>Review the details. Expand an event to make changes.</p>
-          {review.events.length > 0 && <button type="button" className="popup-text-action"
-            onClick={() => dispatch({ type: "expand-all", expanded: !allExpanded })}>{allExpanded ? "Collapse all" : "Expand all"}</button>}
+      <p className={`popup-refresh-status${refreshNotice?.error ? " export-error" : ""}`}
+        role={refreshNotice?.error ? "alert" : "status"} aria-atomic="true">
+        {refreshing ? "Reading the schedule page..." : refreshNotice?.message}
+      </p>
+      <fieldset className="review-body" disabled={refreshing} aria-busy={refreshing} aria-label="Schedule events">
+        <div className="review-tabs" role="tablist" aria-label="Schedule review">
+          {[["edit", "Edit events"], ["preview", "Weekly preview"]].map(([tab, label]) => (
+            <button key={tab} id={`review-tab-${tab}`} type="button" role="tab"
+              aria-selected={activeTab === tab} aria-controls={`review-panel-${tab}`}
+              tabIndex={activeTab === tab ? 0 : -1} ref={(element) => { tabRefs.current[tab] = element; }}
+              onClick={() => setActiveTab(tab)} onKeyDown={navigateTabs}>{label}</button>
+          ))}
         </div>
-        <div id="export-list" ref={listRef}>
-          {errors.length > 0 && <section className="popup-error-summary" aria-labelledby="popup-errors-title">
-            <h3 id="popup-errors-title">A few details need attention</h3>
-            <p>Fix these fields before creating your calendar file.</p>
-            <ul>{errors.map((error) => {
-              const event = review.events.find((item) => item.id === error.id);
-              return <li key={`${error.id}-${error.field}`}><button type="button" className="popup-error-link" onClick={() => revealEvent(error.id, error.field)}>
-                {event?.courseCode || "Untitled course"} · {componentLabel(event || {}, isClass)}: {error.message}
-              </button></li>;
-            })}</ul>
-          </section>}
-          <p className="sr-only" role="status" aria-live="polite">{attempted ? `${errors.length} ${errors.length === 1 ? "field needs" : "fields need"} attention.` : ""}</p>
-          {review.courses.map((course) => <CourseCard key={course.id} course={course}
-            events={review.events.filter((event) => event.courseId === course.id)} isClass={isClass}
-            errors={errors} dispatch={dispatch} onEdit={edit} onRemove={remove} onReveal={revealEvent} />)}
-          {!review.events.length && <div className="export-empty"><strong>No events to export</strong><p>{lastRemoval ? "Undo the last removal to bring events back, or go back to start again." : "Go back to review your schedule again."}</p></div>}
-        </div>
-      </div>
-      <div id="review-panel-preview" className="review-panel preview-panel" role="tabpanel" aria-labelledby="review-tab-preview" hidden={activeTab !== "preview"}>
-        <WeeklyPreview {...preview} weekStart={weekStart} bounds={prepared.bounds}
-          startMinutes={prepared.startMinutes} endMinutes={prepared.endMinutes}
-          warnings={warnings} hasEvents={review.events.length > 0} isActive={activeTab === "preview"}
-          onNavigate={(offset) => setSelectedWeek(addDays(weekStart, offset))} onSelectEvent={revealEvent} />
-      </div>
-      {lastRemoval && (
-        <div className="popup-removal-notice" ref={removalNoticeRef}>
-          <span role="status">{lastRemoval.label}</span>
-          <div className="popup-removal-actions">
-            <button ref={undoRef} type="button" className="popup-text-action" onClick={undoRemoval}>Undo</button>
-            <button type="button" className="popup-text-action popup-dismiss-removal"
-              aria-label="Dismiss Undo notice" onClick={dismissRemoval}>×</button>
+        <div id="review-panel-edit" className="review-panel" role="tabpanel" aria-labelledby="review-tab-edit" hidden={activeTab !== "edit"}>
+          <div className="popup-review-tools">
+            <p>Review the details. Expand an event to make changes.</p>
+            {review.events.length > 0 && <button type="button" className="popup-text-action"
+              onClick={() => dispatch({ type: "expand-all", expanded: !allExpanded })}>{allExpanded ? "Collapse all" : "Expand all"}</button>}
+          </div>
+          <div id="export-list" ref={listRef}>
+            {errors.length > 0 && <section className="popup-error-summary" aria-labelledby="popup-errors-title">
+              <h3 id="popup-errors-title">A few details need attention</h3>
+              <p>Fix these fields before creating your calendar file.</p>
+              <ul>{errors.map((error) => {
+                const event = review.events.find((item) => item.id === error.id);
+                return <li key={`${error.id}-${error.field}`}><button type="button" className="popup-error-link" onClick={() => revealEvent(error.id, error.field)}>
+                  {event?.courseCode || "Untitled course"} · {componentLabel(event || {}, isClass)}: {error.message}
+                </button></li>;
+              })}</ul>
+            </section>}
+            <p className="sr-only" role="status" aria-live="polite">{attempted ? `${errors.length} ${errors.length === 1 ? "field needs" : "fields need"} attention.` : ""}</p>
+            {review.courses.map((course) => <CourseCard key={course.id} course={course}
+              events={review.events.filter((event) => event.courseId === course.id)} isClass={isClass}
+              errors={errors} dispatch={dispatch} onEdit={edit} onRemove={remove} onReveal={revealEvent} />)}
+            {!review.events.length && <div className="export-empty"><strong>No events to export</strong><p>{lastRemoval ? "Undo the last removal, refresh from the page, or go back to start again." : "Refresh from the page or go back to review your schedule again."}</p></div>}
           </div>
         </div>
-      )}
-      {exportError && <p className="export-error" role="alert">{exportError}</p>}
-      <div className="button-container export-controls">
-        <button id="exportConfirmButton" type="submit" className="primary" disabled={!review.events.length}>Create .ICS file</button>
-        <button id="exportCancelButton" type="button" className="secondary" ref={cancelRef} onClick={onCancel}>Back</button>
-      </div>
+        <div id="review-panel-preview" className="review-panel preview-panel" role="tabpanel" aria-labelledby="review-tab-preview" hidden={activeTab !== "preview"}>
+          <WeeklyPreview {...preview} weekStart={weekStart} bounds={prepared.bounds}
+            startMinutes={prepared.startMinutes} endMinutes={prepared.endMinutes}
+            warnings={warnings} hasEvents={review.events.length > 0} isActive={activeTab === "preview" && !refreshing}
+            onNavigate={(offset) => setSelectedWeek(addDays(weekStart, offset))} onSelectEvent={revealEvent} />
+        </div>
+        {lastRemoval && (
+          <div className="popup-removal-notice" ref={removalNoticeRef}>
+            <span role="status">{lastRemoval.label}</span>
+            <div className="popup-removal-actions">
+              <button ref={undoRef} type="button" className="popup-text-action" onClick={undoRemoval}>Undo</button>
+              <button type="button" className="popup-text-action popup-dismiss-removal"
+                aria-label="Dismiss Undo notice" onClick={dismissRemoval}>×</button>
+            </div>
+          </div>
+        )}
+        {exportError && <p className="export-error" role="alert">{exportError}</p>}
+        <div className="button-container export-controls">
+          <button id="exportConfirmButton" type="submit" className="primary" disabled={!review.events.length}>Create .ICS file</button>
+          <button id="exportCancelButton" type="button" className="secondary" ref={cancelRef} onClick={onCancel}>Back</button>
+        </div>
+      </fieldset>
     </form>
   );
 }

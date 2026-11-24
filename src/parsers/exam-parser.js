@@ -31,11 +31,14 @@ function extractDataFromExamTable() {
   return exams;
 }
 
-export async function parseExamTable() {
-  let [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+export async function parseExamTable(tabId) {
+  if (tabId === undefined) {
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    tabId = tab.id;
+  }
 
   const results = await chrome.scripting.executeScript({
-    target: { tabId: tab.id, allFrames: true },
+    target: { tabId, allFrames: true },
     func: extractDataFromExamTable,
   });
 

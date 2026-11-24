@@ -4,13 +4,7 @@ import {
   getAuthTokenAndUserInfo,
   revokeAuthToken,
 } from "../services/google-auth.js";
-import { CLASS_PAGE, EXAM_PAGE } from "../state/review-state.js";
-
-// Chrome serializes this function before injecting it into each frame.
-export function checkForSchedulePage() {
-  const title = document.getElementById("app_label")?.innerText.trim();
-  return title === "My Class Schedule" || title === "My Exam Schedule" ? title : false;
-}
+import { findSchedulePage } from "../services/schedule-page.js";
 
 export function useExtension() {
   const [detection, setDetection] = useState({ phase: "checking", pageType: null });
@@ -49,21 +43,8 @@ export function useExtension() {
 
     async function detectSchedule() {
       try {
-        const [tab] = await chrome.tabs.query({
-          active: true,
-          currentWindow: true,
-        });
-
-        let detected = null;
-        if (tab?.url && new URL(tab.url).hostname.endsWith(".uottawa.ca")) {
-          const results = await chrome.scripting.executeScript({
-            target: { tabId: tab.id, allFrames: true },
-            func: checkForSchedulePage,
-          });
-          detected =
-            results.find(({ result }) => result === CLASS_PAGE || result === EXAM_PAGE)?.result ||
-            null;
-        }
+        const page = await findSchedulePage();
+        const detected = page?.pageType || null;
 
         if (!cancelled) setDetection({ phase: detected ? "ready" : "unsupported", pageType: detected });
       } catch (error) {

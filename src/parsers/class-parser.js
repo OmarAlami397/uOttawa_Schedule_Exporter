@@ -98,11 +98,14 @@ function extractDataFromClassTable() {
   return allClassData;
 }
 
-export async function parseClassTable() {
-  let [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+export async function parseClassTable(tabId) {
+  if (tabId === undefined) {
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    tabId = tab.id;
+  }
 
   const results = await chrome.scripting.executeScript({
-    target: { tabId: tab.id, allFrames: true },
+    target: { tabId, allFrames: true },
     func: extractDataFromClassTable,
   });
 

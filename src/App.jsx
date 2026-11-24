@@ -2,6 +2,7 @@ import { useReducer, useState } from "react";
 import { parseClassTable } from "./parsers/class-parser.js";
 import { parseExamTable } from "./parsers/exam-parser.js";
 import { exportToIcs } from "./services/ics-export.js";
+import { findSchedulePage } from "./services/schedule-page.js";
 import ExportReview from "./components/ExportReview.jsx";
 import MainView from "./components/MainView.jsx";
 import {
@@ -51,6 +52,26 @@ export default function App() {
     }
   }
 
+  async function refreshCourses() {
+    const page = await findSchedulePage();
+    if (!page || page.pageType !== extension.pageType) {
+      throw new Error(`Open ${extension.pageType} in uoZone, then refresh again.`);
+    }
+
+    const data = page.pageType === CLASS_PAGE
+      ? await parseClassTable(page.tabId)
+      : await parseExamTable(page.tabId);
+
+    if (!extension.mounted.current) return;
+    if (!data.length) {
+      throw new Error("No events found. Check that the schedule has loaded, then refresh again.");
+    }
+
+    dispatch({ type: "reset", review: createReview(data, page.pageType) });
+    setExportResult(null);
+    extension.setStatus("");
+  }
+
   function confirmExport() {
     const { pageType } = extension;
     const filename = pageType === CLASS_PAGE ? "uOttawa_Class_Schedule.ics" : "uOttawa_Exam_Schedule.ics";
@@ -88,6 +109,7 @@ export default function App() {
       onUndoRemoval={() => dispatch({ type: "undo-remove" })}
       onConfirm={confirmExport}
       onCancel={cancelExport}
+      onRefresh={refreshCourses}
     />
   );
 }
