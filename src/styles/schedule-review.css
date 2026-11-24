@@ -60,7 +60,19 @@ body:has(#exporting-view) {
 #exporting-view > * {
   flex-shrink: 0;
 }
-#exporting-view > .review-panel:not([hidden]) {
+.review-body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+#exporting-view > .review-body { flex-shrink: 1; }
+.review-body > * { flex-shrink: 0; }
+.review-body > .review-panel:not([hidden]) {
   display: flex;
   flex-direction: column;
   flex: 1;
@@ -100,6 +112,12 @@ body:has(#exporting-view) {
 
 .popup-review-tools { display: flex; flex-shrink: 0; justify-content: space-between; align-items: center; gap: 12px; margin: -6px 3px 10px; text-align: left; }
 .popup-review-tools p { margin: 0; color: var(--popup-muted); font-size: 12px; }
+.popup-refresh-tools { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 8px; text-align: left; }
+.popup-refresh-tools p { margin: 0; color: var(--popup-muted); font-size: 12px; }
+.popup-refresh-tools button { width: auto; flex-shrink: 0; padding: 7px 12px; font-size: 12px; }
+.popup-refresh-status { margin: 0 0 8px; color: var(--popup-muted); font-size: 12px; text-align: left; }
+.popup-refresh-status:empty { display: none; }
+.popup-refresh-status.export-error { color: var(--popup-garnet); }
 .popup-text-action { width: auto; flex-shrink: 0; min-height: 28px; padding: 4px 6px; background: transparent; color: var(--popup-garnet); font-size: 12px; font-weight: 500; }
 .popup-text-action:hover { background: var(--popup-soft); }
 .popup-error-summary { flex-shrink: 0; padding: 14px 16px; border: 1px solid #d9aeb6; border-left: 3px solid var(--popup-garnet); border-radius: 6px; background: #fcf0ef; }
