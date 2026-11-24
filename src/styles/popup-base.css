@@ -87,8 +87,8 @@ button:disabled {
   border-color: #ccc;
 }
 
-.export-item input:focus-visible,
-.export-item select:focus-visible,
+.course-card input:focus-visible,
+.course-card select:focus-visible,
 button:focus-visible {
   outline: 2px solid #4285f4;
   outline-offset: 2px;
@@ -144,7 +144,7 @@ button:disabled, #exportToGoogleButton:disabled, #signInButton:disabled, #signOu
   color: #83736f;
 }
 
-.export-item input:focus-visible, .export-item select:focus-visible, button:focus-visible { outline-color: var(--popup-garnet); }
+.course-card input:focus-visible, .course-card select:focus-visible, button:focus-visible { outline-color: var(--popup-garnet); }
 
 summary:focus-visible { outline: 2px solid var(--popup-garnet); outline-offset: 3px; }
 

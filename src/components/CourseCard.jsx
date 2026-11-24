@@ -1,11 +1,11 @@
 import CardToggle from "./CardToggle.jsx";
 import EventCard from "./EventCard.jsx";
+import EditableField from "./EditableField.jsx";
 import { componentLabel, eventIssues, eventSummary } from "../services/event-summary.js";
 
-export default function CourseCard({ course, events, isClass, errors, dispatch, onEdit, onRemove, onReveal }) {
+export default function CourseCard({ course, events, isClass, errors, dispatch, onEdit, onCourseEdit, onRemove, onReveal }) {
   const headingId = `${course.id}-title`;
   const contentId = `${course.id}-content`;
-  const name = events[0]?.courseName || events[0]?.description;
   const issueCount = events.filter((event) => eventIssues(event, isClass).length).length;
 
   return (
@@ -20,7 +20,7 @@ export default function CourseCard({ course, events, isClass, errors, dispatch, 
           Remove {isClass ? "class" : "course"}
         </button>
       </div>
-      {name && <p className="course-name">{name}</p>}
+      {!course.expanded && course.courseName && <p className="course-name">{course.courseName}</p>}
       {!course.expanded && (
         <ul className="popup-course-summaries" aria-label={`${course.code} event summaries`}>
           {events.map((event) => <li key={event.id}>
@@ -33,6 +33,9 @@ export default function CourseCard({ course, events, isClass, errors, dispatch, 
         </ul>
       )}
       <div id={contentId} className="card-content course-content" hidden={!course.expanded}>
+        <div className="course-fields">
+          <EditableField record={course} field="courseName" label="Course name" onEdit={onCourseEdit} />
+        </div>
         {events.map((event) => <EventCard key={event.id} event={event} isClass={isClass} errors={errors}
           dispatch={dispatch} onEdit={onEdit} onRemove={onRemove} />)}
       </div>
